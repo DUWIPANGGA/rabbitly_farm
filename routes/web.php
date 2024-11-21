@@ -59,6 +59,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     // Rute untuk dashboard admin
     Route::get('/admin/dashboard', [HomeController::class, 'index'])->name('admin.dashboard');
+    Route::post('/admin/dashboard/device', [HomeController::class, 'add'])->name('add-device');
+    Route::delete('/admin/dashboard/device', [HomeController::class, 'delete'])->name('delete-device');
+    Route::put('/admin/dashboard/device', [HomeController::class, 'edit'])->name('edit-device');
 
     // Rute untuk kelola pesanan
     Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');

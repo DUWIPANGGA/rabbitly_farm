@@ -27,13 +27,13 @@
   background-position: center;
 }
 .bot-control-card {
+  padding: 10%;
 display: flex;
 flex-direction: column;
 justify-content: space-between;
   height: 50%;
-  width: 209px;
-  /* background-color: #00b7d3; */
-  border-radius: 0 0 15px 15px;
+  width: 100%;
+  background-color: #00b7d3;
 }
 .card-monitor{
   width: 455px;
