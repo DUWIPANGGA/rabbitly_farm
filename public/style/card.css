@@ -33,7 +33,7 @@ flex-direction: column;
 justify-content: space-between;
   height: 50%;
   width: 100%;
-  background-color: #00b7d3;
+  /* background-color: #00b7d3; */
 }
 .card-monitor{
   width: 455px;
@@ -95,11 +95,11 @@ justify-content: space-between;
   align-items: center;
   height: 50%;
   width: 100%;
-  background-color: #00b7d3;
+  /* background-color: #00b7d3; */
   border-radius: 0 0 15px 15px;
 }
 .bot-monitor-card p{
-  color: white;
+  color: black;
   font-family: Poppins;
   font-size: 20px;
    margin-left: 10px;

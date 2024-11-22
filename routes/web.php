@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentController;
-use App\Models\Product;
-use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\iotController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/admin/rekap/penjualan', [SaleController::class, 'index'])->name('admin.rekap.penjualan');
 Route::resource('sales', SaleController::class);
@@ -62,6 +64,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/dashboard/device', [HomeController::class, 'add'])->name('add-device');
     Route::delete('/admin/dashboard/device', [HomeController::class, 'delete'])->name('delete-device');
     Route::put('/admin/dashboard/device', [HomeController::class, 'edit'])->name('edit-device');
+    Route::get('/admin/monitoring', [iotController::class, 'show'])->name('monitoring-iot');
+
+    Route::get('/api/devices', [DeviceController::class, 'getDevices']);
+    Route::post('/api/devices', [DeviceController::class, 'saveState']);
 
     // Rute untuk kelola pesanan
     Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');

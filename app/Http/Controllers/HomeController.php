@@ -52,6 +52,7 @@ class HomeController extends Controller
             return redirect()->back()->withErrors('Unauthorized action or device not found.');
         }
 
+        $device->id_device = $validated['id_device'];
         $device->nama_device = $validated['nama_device'];
         $device->password = $validated['password'];
         $device->status = $validated['status'];
