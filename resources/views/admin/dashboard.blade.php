@@ -628,7 +628,6 @@
             </div>
         </div>
 
-        <!-- Add the JavaScript for rendering the line chart -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -662,12 +661,10 @@
                 }
             });
 
-            // Fungsi untuk menutup pesan flash
             function closeSuccessMessage() {
                 document.getElementById('successMessage').classList.add('hidden');
             }
 
-            // Tambahkan event listener pada area gelap untuk menutup pesan
             document.addEventListener('click', function(e) {
                 const successMessage = document.getElementById('successMessage');
                 if (successMessage && !successMessage.querySelector('.relative').contains(e.target)) {
@@ -676,24 +673,18 @@
             });
 
             function showEditForm(id, name, status) {
-                // Populate the form fields
                 document.getElementById('editDeviceId').value = id;
                 document.getElementById('editDeviceName').value = name;
-
-                // Show the modal
                 document.getElementById('editFormModal').classList.remove('hidden');
             }
 
             function closeEditForm() {
-                // Hide the modal
                 document.getElementById('editFormModal').classList.add('hidden');
             }
-            // Function to show the form when card is clicked
             function showForm() {
                 document.getElementById('deviceForm').classList.remove('hidden');
             }
 
-            // Function to close the form (Cancel button)
             function closeForm() {
                 document.getElementById('deviceForm').classList.add('hidden');
             }
