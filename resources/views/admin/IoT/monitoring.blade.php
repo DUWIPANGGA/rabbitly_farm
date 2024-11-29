@@ -148,6 +148,7 @@
                         <th class="py-2 px-4 text-left">Tanggal & Waktu</th>
                         <th class="py-2 px-4 text-left">Status Lampu</th>
                         <th class="py-2 px-4 text-left">Keterangan</th>
+                        <th class="py-2 px-4 text-left">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,12 +166,31 @@
                             <td class="py-2 px-4">
                                 {{ $device->status_lampu == 1 ? 'Lampu menyala otomatis saat terdeteksi aktivitas' : 'Lampu mati tidak terdeteksi aktivitas' }}
                             </td>
+                            <td class="py-2 px-4">
+                                <form action="{{ route('history.destroy', $device->id_history) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-500 text-white py-1 px-3 rounded-full text-xs" onclick="return confirm('Apakah Anda yakin ingin menghapus perangkat ini?')">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @endforeach
                     @endif
                 </tbody>
             </table>
+            <div class="mt-4">
+                <form action="{{ route('devices.destroyAll') }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="bg-red-700 text-white py-2 px-4 rounded-lg text-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus semua perangkat?')">
+                        Delete All
+                    </button>
+                </form>
+            </div>
         </div>
+        
         
     </div>
 </body>

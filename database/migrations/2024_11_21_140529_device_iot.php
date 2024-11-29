@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id');
             $table->string('nama_device'); // Tanggal penjualan
             $table->integer('status')->default(0);
+            $table->integer('maks_suhu')->default(40);
+            $table->integer('min_suhu')->default(0);
             $table->timestamps(); // Kolom created_at dan updated_at
             $table->foreign('id')->references('id')->on('users')->onDelete('cascade');
 

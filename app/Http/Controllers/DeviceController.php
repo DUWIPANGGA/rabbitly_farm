@@ -13,7 +13,7 @@ class DeviceController extends Controller
     public function getDevices()
     {
         $devices = Device::where('id', Auth::user()->id)->get();
-
+        
         return response()->json($devices);
     }
     public function saveState(Request $request)
@@ -52,4 +52,5 @@ class DeviceController extends Controller
             return response()->json(['message' => 'No records found'], 404);
         }
     }
+    
 }

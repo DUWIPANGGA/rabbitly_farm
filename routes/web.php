@@ -65,6 +65,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/dashboard/device', [HomeController::class, 'delete'])->name('delete-device');
     Route::put('/admin/dashboard/device', [HomeController::class, 'edit'])->name('edit-device');
     Route::get('/admin/monitoring', [iotController::class, 'show'])->name('monitoring-iot');
+    Route::delete('/admin/monitoring/{id}', [iotController::class, 'destroy'])->name('history.destroy');
+    Route::delete('/admin/destroy/all', [iotController::class, 'destroyAll'])->name('devices.destroyAll');
 
     Route::get('/api/devices', [DeviceController::class, 'getDevices']);
     Route::post('/api/devices', [DeviceController::class, 'saveState']);

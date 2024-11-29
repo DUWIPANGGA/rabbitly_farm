@@ -18,7 +18,7 @@
         var port = 8083;
         var username = "rabbit_polindra"; // Replace with your username
         var password = "rabbit_polindra"; // Replace with your password
-
+        const suhu = @json($suhu);
         // Function to handle successful connection
         function onConnect() {
             console.log("Connected to MQTT broker");
@@ -31,6 +31,7 @@
                         .then(devices => {
                             console.log(devices);
                             devices.forEach(device => {
+
                                 const payload = JSON.stringify({
                                     msg: "ping",
                                     ID: device.id_device,
@@ -167,7 +168,7 @@
                 let deviceId = payload.ID;
                 let temperature = payload.temp.toFixed(1);
                 let humidity = payload.hum.toFixed(1);
-
+                suhuRead(temperature);
                 // Perbarui elemen suhu dan kelembaban
                 let temperatureElement = document.querySelector(`#temperature-${deviceId}`);
                 let humidityElement = document.querySelector(`#humidity-${deviceId}`);
@@ -183,23 +184,18 @@
                 const chartElementId = `#suhuChart-${deviceId}`;
                 const currentDateTime = new Date().toLocaleTimeString(); // Label waktu
                 if (document.querySelector(chartElementId)) {
-                    // Ambil data chart saat ini
                     let currentChart = deviceCharts[chartElementId];
 
                     if (currentChart) {
-                        // Tambahkan data baru ke chart
                         currentChart.data.labels.push(currentDateTime);
                         currentChart.data.datasets[0].data.push(parseFloat(temperature));
-
-                        // Hapus data lama jika sudah terlalu banyak (misalnya, 20 titik)
                         if (currentChart.data.labels.length > 20) {
                             currentChart.data.labels.shift(); // Hapus label pertama
                             currentChart.data.datasets[0].data.shift(); // Hapus data pertama
                         }
 
-                        currentChart.update(); // Render ulang chart
+                        currentChart.update();
                     } else {
-                        // Jika chart belum ada, buat baru
                         suhuChart([currentDateTime], [parseFloat(temperature)], chartElementId);
                     }
                 }
@@ -207,13 +203,25 @@
             }
         }
 
-
-        // Function to connect to the MQTT broker
+        function suhuRead(suhuIN) {
+            var suhuTinggi = document.getElementById('alertContainer').querySelector('.nama-ruang').innerHTML;
+            var suhuRendah = document.getElementById('lowTempAlert').querySelector('.nama-ruang').innerHTML;
+            for (let i = 0; i < suhu.length; i++) {
+                console.log(suhu);
+                const suhuu = suhu[i];
+                if (suhuIN > suhuu.maks_suhu) {
+                    suhuTinggi = suhuu.nama_device +' terlalu tinggi';
+                    showAlert();
+                }
+                if (suhuIN < suhuu.min_suhu) {
+                    suhuRendah = suhuu.nama_device +' terlalu rendah';
+                    showLowTempAlert();
+                }
+            }
+        }
         function mqttConnect() {
             console.log("Connecting to " + host + ":" + port);
             mqtt = new Paho.MQTT.Client(host, port, "clientjs");
-
-            // Set up the message arrival handler
             mqtt.onMessageArrived = onMessageArrived;
 
             var options = {
@@ -374,6 +382,50 @@
     </div>
 
     <!-- Main Content -->
+    <!-- Container Alert -->
+    <!-- Container Alert -->
+    <div id="alertContainer" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-red-500 text-white p-6 rounded shadow-md text-center max-w-sm w-full">
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="currentColor" viewBox="0 0 24 24"
+                    stroke="none">
+                    <path
+                        d="M14 14.76V5a2 2 0 1 0-4 0v9.76A4 4 0 1 0 14 14.76ZM12 2a3 3 0 0 1 3 3v9.21a5 5 0 1 1-6 0V5a3 3 0 0 1 3-3Zm1 14.91V16a1 1 0 1 0-2 0v.91a2 2 0 1 0 2 0Z" />
+                </svg>
+                <h3 class="text-xl font-semibold mb-2">Peringatan</h3>
+                <p class="nama-ruang">Ruang Tengah terlalu tinggi</p>
+                <p class="text-sm mt-2">Pastikan suhu ruangan dikontrol dengan baik.</p>
+            </div>
+            <button onclick="closeAlert()" class="mt-4 bg-white text-red-500 px-4 py-2 rounded-md">
+                Tutup
+            </button>
+        </div>
+    </div>
+    <!-- Container Alert -->
+    <div id="lowTempAlert" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-blue-500 text-white p-6 rounded shadow-md text-center max-w-sm w-full">
+            <div class="flex flex-col items-center">
+                <!-- Ikon Termometer -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="currentColor" viewBox="0 0 24 24"
+                    stroke="none">
+                    <path
+                        d="M14 14.76V5a2 2 0 1 0-4 0v9.76A4 4 0 1 0 14 14.76ZM12 2a3 3 0 0 1 3 3v9.21a5 5 0 1 1-6 0V5a3 3 0 0 1 3-3Zm-1 14.91V16a1 1 0 1 1 2 0v.91a2 2 0 1 1-2 0Z" />
+                </svg>
+
+                <!-- Teks Peringatan -->
+                <h3 class="text-xl font-semibold mb-2">Peringatan</h3>
+                <p class="nama-ruang">Ruang Tengah terlalu rendah</p>
+                <p class="text-sm mt-2">Suhu ruangan berada di bawah batas normal.</p>
+            </div>
+            <!-- Tombol Tutup -->
+            <button onclick="closeLowTempAlert()" class="mt-4 bg-white text-blue-500 px-4 py-2 rounded-md">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+
+
     <div class="overflow-y-auto h-screen">
         @if (session('success'))
             <div id="successMessage"
@@ -403,16 +455,7 @@
                     <span class="ml-2 font-semibold text-xl text-white">Rabbitly Farm</span>
                 </div>
             </div>
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
+            
             <!-- Statistics Cards (Updated to Chart Style) -->
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
                 <!-- Value of 1 Bitcoin Card -->
@@ -432,8 +475,6 @@
                         <div class="w-10 h-24 bg-indigo-500 rounded-md"></div>
                     </div>
                 </div>
-
-                <!-- Most Sales Card with Line Chart -->
                 <div class="card">
                     <h4 class="text-lg font-semibold">Total Penjualan</h4>
                     <div class="mt-50">
@@ -441,6 +482,15 @@
                     </div>
                 </div>
             </div>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="flex flex-row gap-6 h-auto w-[80%] pb-10 pt-10 overflow-x-auto overflow-y-hidden flex-wrap">
                 @foreach ($yourDevice as $device)
                     <div class="card relative rounded-lg overflow-hidden h-[70%]" style="width: 250px; height: 260px;">
@@ -469,7 +519,8 @@
                             class="border-primary top-control-card p-4 flex justify-center items-center bg-gradient-to-t from-blue-400 to-blue-500 rounded-lg shadow-lg">
                             <div class="text-center w-full">
                                 <!-- Lamp Icon based on Switch -->
-                                <i id="lamp-icon-{{ $device->id_device }}" class="fas fa-lightbulb text-white off-lamp"
+                                <i id="lamp-icon-{{ $device->id_device }}"
+                                    class="fas fa-lightbulb text-white off-lamp"
                                     style="font-size: 6rem; transition: color 0.3s ease;"></i>
                             </div>
                         </div>
@@ -486,12 +537,11 @@
                             </label>
                         </div>
                     </div>
-                    <div class="card relative rounded-lg overflow-hidden h-[70%]" style="width: 250px; height: 260px;">
-                        <!-- Isi Card -->
+                    <div class="card relative rounded-lg overflow-hidden h-[70%]"
+                        style="width: 250px; height: 260px;">
                         <div
                             class="top-control-card p-4 flex justify-center items-center bg-gradient-to-t from-blue-400 to-blue-500 rounded-lg shadow-lg">
                             <div class="text-center w-full">
-                                <!-- Ikon Suhu -->
                                 <i class="fas fa-thermometer-half text-gray-500" style="font-size: 5rem;"></i>
                             </div>
                         </div>
@@ -513,8 +563,6 @@
                                 <i class="fas fa-tint text-gray-500" style="font-size: 5rem;"></i>
                             </div>
                         </div>
-
-                        <!-- Bottom Control Card -->
                         <div class="bot-control-card text-center mt-2 p-4">
                             <h4 class="text-gray-200 font-semibold text-gray-400"
                                 id="humidity-{{ $device->id_device }}">0Rh</h4>
@@ -583,209 +631,253 @@
                             class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Device Name"
                             required />
                     </div>
+                    <!-- Input Maksimal Suhu -->
+                    <div class="mb-4">
+                        <label for="maxTemp" class="block text-sm font-semibold text-gray-700">Maksimal Suhu</label>
+                        <input type="number" id="maxTemp" name="max_temp"
+                            class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Max Temperature"
+                            required />
+                    </div>
+                    <!-- Input Minimal Suhu -->
+                    <div class="mb-4">
+                        <label for="minTemp" class="block text-sm font-semibold text-gray-700">Minimal Suhu</label>
+                        <input type="number" id="minTemp" name="min_temp"
+                            class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Min Temperature"
+                            required />
+                    </div>
                     <div class="flex justify-between">
                         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Add Device</button>
                         <button type="button" onclick="closeForm()"
                             class="bg-red-500 text-white px-4 py-2 rounded-md">Cancel</button>
                     </div>
                 </form>
-
             </div>
-        </div>
-
-        <div id="editFormModal"
-            class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded shadow-md w-full max-w-sm">
-                <h3 class="text-lg font-semibold mb-4 text-center">Edit Device</h3>
-                <form id="editDeviceForm" method="POST" action="{{ route('edit-device') }}">
-                    @csrf
-                    @method('PUT')
-                    <div class="mb-4">
-                        <label for="editDeviceId" class="block text-sm font-semibold text-gray-700">Device
-                            id</label>
-                        <input type="text" id="editDeviceId" name="id_device"
-                            class="w-full p-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="editDeviceName" class="block text-sm font-semibold text-gray-700">Device
-                            Name</label>
-                        <input type="text" id="editDeviceName" name="nama_device"
-                            class="w-full p-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="editDevicePass" class="block text-sm font-semibold text-gray-700">Device
-                            Password</label>
-                        <input type="password" id="editDevicePass" name="password"
-                            class="w-full p-2 border border-gray-300 rounded-md" required>
-                    </div>
-
-                    <div class="flex justify-between">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Save</button>
-                        <button type="button" onclick="closeEditForm()"
-                            class="bg-red-500 text-white px-4 py-2 rounded-md">Cancel</button>
-                    </div>
-                </form>
+            <div id="editFormModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white p-6 rounded shadow-md w-full max-w-sm">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Edit Device</h3>
+                    <form id="editDeviceForm" method="POST" action="{{ route('edit-device') }}">
+                        @csrf
+                        @method('PUT')
+                        <div class="mb-4">
+                            <label for="editDeviceId" class="block text-sm font-semibold text-gray-700">Device
+                                ID</label>
+                            <input type="text" id="editDeviceId" name="id_device"
+                                class="w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editDeviceName" class="block text-sm font-semibold text-gray-700">Device
+                                Name</label>
+                            <input type="text" id="editDeviceName" name="nama_device"
+                                class="w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editDevicePass" class="block text-sm font-semibold text-gray-700">Device
+                                Password</label>
+                            <input type="password" id="editDevicePass" name="password"
+                                class="w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                        <!-- Input Maksimal Suhu -->
+                        <div class="mb-4">
+                            <label for="editMaxTemp" class="block text-sm font-semibold text-gray-700">Maksimal
+                                Suhu</label>
+                            <input type="number" id="editMaxTemp" name="max_temp"
+                                class="w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                        <!-- Input Minimal Suhu -->
+                        <div class="mb-4">
+                            <label for="editMinTemp" class="block text-sm font-semibold text-gray-700">Minimal
+                                Suhu</label>
+                            <input type="number" id="editMinTemp" name="min_temp"
+                                class="w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                        <div class="flex justify-between">
+                            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Save</button>
+                            <button type="button" onclick="closeEditForm()"
+                                class="bg-red-500 text-white px-4 py-2 rounded-md">Cancel</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            var ctx = document.getElementById('salesChart').getContext('2d');
-            var salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    datasets: [{
-                        label: 'Pelanggan',
-                        data: [20000, 25000, 30000, 35000, 40000, 42000, 45000, 43000, 40000, 38000, 36000,
-                            37000
-                        ],
-                        backgroundColor: 'rgba(255, 165, 0, 0.2)',
-                        borderColor: 'orange',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            suggestedMin: 10000,
-                            suggestedMax: 50000
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                var ctx = document.getElementById('salesChart').getContext('2d');
+                var salesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                        datasets: [{
+                            label: 'Pelanggan',
+                            data: [20000, 25000, 30000, 35000, 40000, 42000, 45000, 43000, 40000, 38000, 36000,
+                                37000
+                            ],
+                            backgroundColor: 'rgba(255, 165, 0, 0.2)',
+                            borderColor: 'orange',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                suggestedMin: 10000,
+                                suggestedMax: 50000
+                            }
                         }
                     }
-                }
-            });
-
-            function closeSuccessMessage() {
-                document.getElementById('successMessage').classList.add('hidden');
-            }
-
-            document.addEventListener('click', function(e) {
-                const successMessage = document.getElementById('successMessage');
-                if (successMessage && !successMessage.querySelector('.relative').contains(e.target)) {
-                    successMessage.classList.add('hidden');
-                }
-            });
-
-            function showEditForm(id, name, status) {
-                document.getElementById('editDeviceId').value = id;
-                document.getElementById('editDeviceName').value = name;
-                document.getElementById('editFormModal').classList.remove('hidden');
-            }
-
-            function closeEditForm() {
-                document.getElementById('editFormModal').classList.add('hidden');
-            }
-            function showForm() {
-                document.getElementById('deviceForm').classList.remove('hidden');
-            }
-
-            function closeForm() {
-                document.getElementById('deviceForm').classList.add('hidden');
-            }
-
-            function onchange(checkbox) {
-                // Get the data-id and data-pass attributes
-                const deviceId = checkbox.getAttribute('data-id');
-                const password = checkbox.getAttribute('data-pass');
-                const state = checkbox.checked ? 'on' : 'off'; // Determine the state (on or off)
-
-                const message = JSON.stringify({
-                    ID: deviceId, 
-                    pass: password, // Password
-                    state: state // State (on or off)
                 });
-                const apidata = {
-                    ID: deviceId, 
-                    pass: password, // Password
-                    state: checkbox.checked // State (on or off)
-                };
-                sendMQTT(message);
-                fetch('/api/devices', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken, // Tambahkan CSRF token di header
 
-                        },
-                        body: JSON.stringify(apidata),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-            const tableBody = document.querySelector('#deviceHistoryTable tbody'); // Mengakses body tabel
-
-            // Kosongkan tabel sebelum menambahkan data baru
-            tableBody.innerHTML = '';
-
-            // Loop melalui data dan tambahkan ke dalam tabel
-            data.forEach(device => {
-                const row = document.createElement('tr'); // Membuat baris baru
-
-                // Membuat sel dan mengisinya dengan data
-                const idCell = document.createElement('td');
-                idCell.textContent = device.id_device;
-                row.appendChild(idCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = device.nama_device;
-                row.appendChild(nameCell);
-
-                const updatedAtCell = document.createElement('td');
-                updatedAtCell.textContent = device.updated_at;
-                row.appendChild(updatedAtCell);
-
-                const statusCell = document.createElement('td');
-                const statusSpan = document.createElement('span');
-                statusSpan.classList.add('py-1', 'px-3', 'rounded-full', 'text-xs');
-                if (device.status_lampu == 1) {
-                    statusSpan.classList.add('bg-green-500', 'text-white','w-20','text-center','justify-center','inline-block');
-                    statusSpan.textContent = 'Menyala';
-                } else {
-                    statusSpan.classList.add('bg-gray-500', 'text-white','w-20','text-center','justify-center','inline-block');
-                    statusSpan.textContent = 'Mati';
+                function closeSuccessMessage() {
+                    document.getElementById('successMessage').classList.add('hidden');
                 }
-                statusCell.appendChild(statusSpan);
-                row.appendChild(statusCell);
 
-                const descriptionCell = document.createElement('td');
-                descriptionCell.textContent = device.status == 1 
-                    ? 'Lampu menyala otomatis saat terdeteksi aktivitas' 
-                    : 'Lampu mati tidak terdeteksi aktivitas';
-                row.appendChild(descriptionCell);
+                document.addEventListener('click', function(e) {
+                    const successMessage = document.getElementById('successMessage');
+                    if (successMessage && !successMessage.querySelector('.relative').contains(e.target)) {
+                        successMessage.classList.add('hidden');
+                    }
+                });
 
-                // Menambahkan baris ke dalam body tabel
-                tableBody.appendChild(row);
-            });
-        })
-                    .catch(error => {
-                        console.error('Error:', error);
+                function showEditForm(id, name, status) {
+                    document.getElementById('editDeviceId').value = id;
+                    document.getElementById('editDeviceName').value = name;
+                    document.getElementById('editFormModal').classList.remove('hidden');
+                }
+
+                function closeEditForm() {
+                    document.getElementById('editFormModal').classList.add('hidden');
+                }
+
+                function showForm() {
+                    document.getElementById('deviceForm').classList.remove('hidden');
+                }
+
+                function closeForm() {
+                    document.getElementById('deviceForm').classList.add('hidden');
+                }
+
+                function onchange(checkbox) {
+                    // Get the data-id and data-pass attributes
+                    const deviceId = checkbox.getAttribute('data-id');
+                    const password = checkbox.getAttribute('data-pass');
+                    const state = checkbox.checked ? 'on' : 'off'; // Determine the state (on or off)
+
+                    const message = JSON.stringify({
+                        ID: deviceId,
+                        pass: password, // Password
+                        state: state // State (on or off)
                     });
-            }
-            document.querySelectorAll('.tglswitch').forEach(function(checkbox) {
-                checkbox.addEventListener('change', function() {
-                    onchange(checkbox);
-                });
-            });
+                    const apidata = {
+                        ID: deviceId,
+                        pass: password, // Password
+                        state: checkbox.checked // State (on or off)
+                    };
+                    sendMQTT(message);
+                    fetch('/api/devices', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken, // Tambahkan CSRF token di header
 
-            function toggleLamp(switchElement) {
-                var deviceId = switchElement.getAttribute('data-id');
-                var lampIcon = document.querySelector('#lamp-icon-' + deviceId);
+                            },
+                            body: JSON.stringify(apidata),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            const tableBody = document.querySelector('#deviceHistoryTable tbody'); // Mengakses body tabel
 
-                if (switchElement.checked) {
-                    lampIcon.classList.add('on-lamp');
-                    lampIcon.classList.remove('off-lamp');
-                } else {
-                    lampIcon.classList.add('off-lamp');
-                    lampIcon.classList.remove('on-lamp');
+                            // Kosongkan tabel sebelum menambahkan data baru
+                            tableBody.innerHTML = '';
+
+                            // Loop melalui data dan tambahkan ke dalam tabel
+                            data.forEach(device => {
+                                const row = document.createElement('tr'); // Membuat baris baru
+
+                                // Membuat sel dan mengisinya dengan data
+                                const idCell = document.createElement('td');
+                                idCell.textContent = device.id_device;
+                                row.appendChild(idCell);
+
+                                const nameCell = document.createElement('td');
+                                nameCell.textContent = device.nama_device;
+                                row.appendChild(nameCell);
+
+                                const updatedAtCell = document.createElement('td');
+                                updatedAtCell.textContent = device.updated_at;
+                                row.appendChild(updatedAtCell);
+
+                                const statusCell = document.createElement('td');
+                                const statusSpan = document.createElement('span');
+                                statusSpan.classList.add('py-1', 'px-3', 'rounded-full', 'text-xs');
+                                if (device.status_lampu == 1) {
+                                    statusSpan.classList.add('bg-green-500', 'text-white', 'w-20', 'text-center',
+                                        'justify-center', 'inline-block');
+                                    statusSpan.textContent = 'Menyala';
+                                } else {
+                                    statusSpan.classList.add('bg-gray-500', 'text-white', 'w-20', 'text-center',
+                                        'justify-center', 'inline-block');
+                                    statusSpan.textContent = 'Mati';
+                                }
+                                statusCell.appendChild(statusSpan);
+                                row.appendChild(statusCell);
+
+                                const descriptionCell = document.createElement('td');
+                                descriptionCell.textContent = device.status == 1 ?
+                                    'Lampu menyala otomatis saat terdeteksi aktivitas' :
+                                    'Lampu mati tidak terdeteksi aktivitas';
+                                row.appendChild(descriptionCell);
+
+                                // Menambahkan baris ke dalam body tabel
+                                tableBody.appendChild(row);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 }
-            }
-        </script>
+                document.querySelectorAll('.tglswitch').forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        onchange(checkbox);
+                    });
+                });
+
+                function toggleLamp(switchElement) {
+                    var deviceId = switchElement.getAttribute('data-id');
+                    var lampIcon = document.querySelector('#lamp-icon-' + deviceId);
+
+                    if (switchElement.checked) {
+                        lampIcon.classList.add('on-lamp');
+                        lampIcon.classList.remove('off-lamp');
+                    } else {
+                        lampIcon.classList.add('off-lamp');
+                        lampIcon.classList.remove('on-lamp');
+                    }
+                }
+
+                function showAlert() {
+                    document.getElementById('alertContainer').classList.remove('hidden');
+                }
+
+                function closeAlert() {
+                    document.getElementById('alertContainer').classList.add('hidden');
+                }
+
+                function showLowTempAlert() {
+                    document.getElementById('lowTempAlert').classList.remove('hidden');
+                }
+
+                function closeLowTempAlert() {
+                    document.getElementById('lowTempAlert').classList.add('hidden');
+                }
+            </script>
 
 </body>
 
