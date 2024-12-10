@@ -163,7 +163,7 @@
                     }
                 });
             }
-            if (payload.hasOwnProperty("type")) {
+            if (payload.hasOwnPropecrty("type")) {
                 // Ambil data dari payload
                 let deviceId = payload.ID;
                 let temperature = payload.temp.toFixed(1);
